@@ -71,7 +71,7 @@ for frame = startframe:endframe
     for i = 1:length(I_video)
         imgname = [videoname sprintf('/%03d_%02d.png',frame,i)];
         if dnoise == 1
-            cI = bilateral_filter(mat2gray(I_video{i}), 1, 0.1);
+            cI = bilateral_filter(I_video{i}, 1, 0.1);
         else
             cI = I_video{i};
         end
