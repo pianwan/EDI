@@ -1,17 +1,7 @@
 from scipy.io import savemat
 from imageio.v3 import imread
 import numpy as np
-import glob
 import os
-
-# example code
-#
-# npzFiles = glob.glob("*.npz")
-# for f in npzFiles:
-#     fm = os.path.splitext(f)[0] + '.mat'
-#     d = np.load(f)
-#     savemat(fm, d)
-#     print('generated ', fm, 'from', f)
 
 workdir = os.path.expanduser("../rawdata")
 dataset = "livingroom_full"
@@ -19,7 +9,7 @@ ts_mut = 1e6
 
 
 def process_events(events_list):
-    events = np.concatenate(event_list)
+    events = np.concatenate(events_list)
     events = events[events[:, 2].argsort()]
 
     x = events[:, 0].astype(np.uint16)
@@ -41,23 +31,23 @@ def process_events(events_list):
     return events
 
 
-def process_frames(frames_list, ts):
+def process_frames(frames_list, timestamp):
     """
         The frame list ranges from 0 to N, but it should from 1 to N + 3 in .mat data.
         The output from EDI from 2 to N + 2 represents images from 0 to N.
     """
-    frames = np.stack(frameslist)
+    frames = np.stack(frames_list)
     N, H, W = frames.shape[:3]
 
-    frames = np.empty((len(frameslist) + 2,), dtype=object)
-    for i in range(len(frameslist) + 2):
+    frames = np.empty((len(frames_list) + 2,), dtype=object)
+    for i in range(len(frames_list) + 2):
         if i == 0:
-            frames[i] = frameslist[i].astype(np.double)
+            frames[i] = frames_list[i].astype(np.double)
             continue
-        elif i == len(frameslist) + 1:
-            frames[i] = frameslist[i - 2].astype(np.double)
+        elif i == len(frames_list) + 1:
+            frames[i] = frames_list[i - 2].astype(np.double)
             continue
-        frames[i] = frameslist[i - 1].astype(np.double)
+        frames[i] = frames_list[i - 1].astype(np.double)
     frames = np.expand_dims(frames, axis=-1)
 
     xLength = np.repeat(W, N + 2).astype(np.uint16)
@@ -72,10 +62,10 @@ def process_frames(frames_list, ts):
     yPosition = np.repeat(0, N + 2).astype(np.uint16)
     yPosition = np.expand_dims(yPosition, axis=-1)
 
-    timeStampStart = (np.insert(ts, 0, ts[0]) * ts_mut).astype(np.uint32)
+    timeStampStart = (np.insert(timestamp, 0, timestamp[0]) * ts_mut).astype(np.uint32)
     timeStampStart = np.expand_dims(timeStampStart, axis=-1)
 
-    timeStampEnd = (np.insert(ts, -1, ts[-1]) * ts_mut).astype(np.uint32)
+    timeStampEnd = (np.insert(timestamp, -1, timestamp[-1]) * ts_mut).astype(np.uint32)
     timeStampEnd = np.expand_dims(timeStampEnd, axis=-1)
 
     return {"timeStampStart": timeStampStart,
@@ -98,15 +88,15 @@ if __name__ == '__main__':
     # process events
     eventfiles = [os.path.join(eventdir, f) for f in sorted(os.listdir(eventdir)) if
                   f.endswith('npy') and f.startswith(('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'))]
-    event_list = [np.load(e) for e in eventfiles]
+    eventlist = [np.load(e) for e in eventfiles]
 
     # frames
     framefiles = [os.path.join(imgdir, f) for f in sorted(os.listdir(imgdir)) if
                   f.endswith(('png', 'jpg', 'jpeg'))]
-    frameslist = [imread(f) for f in framefiles]
+    framelist = [imread(f) for f in framefiles]
 
-    data = {"polarity": process_events(event_list),
-            "frame": process_frames(frameslist, np.loadtxt(ts))}
+    data = {"polarity": process_events(eventlist),
+            "frame": process_frames(framelist, np.loadtxt(ts))}
 
     fm = os.path.join(outputdir, "data.mat")
 
