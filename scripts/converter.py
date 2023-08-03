@@ -42,30 +42,40 @@ def process_events(events_list):
 
 
 def process_frames(frames_list, ts):
+    """
+        The frame list ranges from 0 to N, but it should from 1 to N + 3 in .mat data.
+        The output from EDI from 2 to N + 2 represents images from 0 to N.
+    """
     frames = np.stack(frameslist)
     N, H, W = frames.shape[:3]
 
-    frames = np.empty((len(frameslist),), dtype=object)
-    for i in range(len(frameslist)):
-        frames[i] = frameslist[i].astype(np.double)
+    frames = np.empty((len(frameslist) + 2,), dtype=object)
+    for i in range(len(frameslist) + 2):
+        if i == 0:
+            frames[i] = frameslist[i].astype(np.double)
+            continue
+        elif i == len(frameslist) + 1:
+            frames[i] = frameslist[i - 2].astype(np.double)
+            continue
+        frames[i] = frameslist[i - 1].astype(np.double)
     frames = np.expand_dims(frames, axis=-1)
 
-    xLength = np.repeat(W, N).astype(np.uint16)
+    xLength = np.repeat(W, N + 2).astype(np.uint16)
     xLength = np.expand_dims(xLength, axis=-1)
 
-    yLength = np.repeat(H, N).astype(np.uint16)
+    yLength = np.repeat(H, N + 2).astype(np.uint16)
     yLength = np.expand_dims(yLength, axis=-1)
 
-    xPosition = np.repeat(0, N).astype(np.uint16)
+    xPosition = np.repeat(0, N + 2).astype(np.uint16)
     xPosition = np.expand_dims(xPosition, axis=-1)
 
-    yPosition = np.repeat(0, N).astype(np.uint16)
+    yPosition = np.repeat(0, N + 2).astype(np.uint16)
     yPosition = np.expand_dims(yPosition, axis=-1)
 
-    timeStampStart = (ts[:-1] * ts_mut).astype(np.uint32)
+    timeStampStart = (np.insert(ts, 0, ts[0]) * ts_mut).astype(np.uint32)
     timeStampStart = np.expand_dims(timeStampStart, axis=-1)
 
-    timeStampEnd = (ts[1:] * ts_mut).astype(np.uint32)
+    timeStampEnd = (np.insert(ts, -1, ts[-1]) * ts_mut).astype(np.uint32)
     timeStampEnd = np.expand_dims(timeStampEnd, axis=-1)
 
     return {"timeStampStart": timeStampStart,
@@ -75,7 +85,7 @@ def process_frames(frames_list, ts):
             "yLength": yLength,
             "xPosition": xPosition,
             "yPosition": yPosition,
-            "numEvents": N}
+            "numEvents": N + 2}
 
 
 if __name__ == '__main__':
