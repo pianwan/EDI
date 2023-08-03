@@ -13,10 +13,10 @@ dnoise = 0; % If needs denoise, dnoise=1
 timescale = 1;
 t_shift = 0.0;
 
-startframe = 5;
-endframe = 15;
+startframe = 2;
+endframe = 31;
 % The length of the reconstructed video
-v_length = 100;
+v_length = 101;
 %% prepare data
 y_o = double(matlabdata.data.polarity.y); % start from 0
 x_o = double(matlabdata.data.polarity.x); % start from 0
