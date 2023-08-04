@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 workdir = os.path.expanduser("../rawdata")
-dataset = "livingroom_full"
+dataset = "livingroom_0.5_0.5_0.5_0.003_0.003_0.003"
 ts_mut = 1e6
 
 
@@ -83,6 +83,8 @@ if __name__ == '__main__':
     imgdir = os.path.join(datadir, "images")
     eventdir = os.path.join(datadir, "events")
     outputdir = os.path.join(datadir, "output")
+    if not os.path.exists(outputdir):
+        os.makedirs(outputdir)
     ts = os.path.join(datadir, "poses_ts.txt")
 
     # process events
